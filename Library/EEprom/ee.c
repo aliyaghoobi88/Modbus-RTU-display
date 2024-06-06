@@ -1,192 +1,382 @@
+
+/************************************************************************************************************
+**************    Include Headers
+************************************************************************************************************/
+
 #include "ee.h"
 #include <string.h>
 
-#define PAGE 0
-#define SECTOR 1
-#define PAGE_NUM 2
+/************************************************************************************************************
+**************    Private Definitions
+************************************************************************************************************/
 
-#define _EE_SIZE 2048
-#define _EE_ADDR_INUSE (((uint32_t)0x08000000) | (_EE_SIZE * _EE_USE_FLASH_PAGE_OR_SECTOR))
-#define _EE_PAGE_OR_SECTOR PAGE_NUM
+#define EE_ERASE_PAGE_ADDRESS               0
+#define EE_ERASE_PAGE_NUMBER                1
+#define EE_ERASE_SECTOR_NUMBER              2
 
-#if (_EE_USE_RAM_BYTE > 0)
-  uint8_t ee_ram[_EE_USE_RAM_BYTE];
+#ifdef  STM32F0
+#define EE_ERASE                            EE_ERASE_PAGE_ADDRESS
+#define FLASH_SIZE                          ((((uint32_t)(*((uint16_t *)FLASHSIZE_BASE)) & (0xFFFFU))) * 1024)
 #endif
 
-/**
- * @brief initail the EE for the stm32
- *
- * @return true  in success Mode
- * @return false  in fail Mode
- */
-bool ee_init(void)
-{
-#if (_EE_USE_RAM_BYTE > 0)
-  return ee_read(0, _EE_USE_RAM_BYTE, NULL);
+#ifdef  STM32F1
+#define EE_ERASE                            EE_ERASE_PAGE_ADDRESS
+#define FLASH_SIZE                          ((((uint32_t)(*((uint16_t *)FLASHSIZE_BASE)) & (0xFFFFU))) * 1024)
+#endif
+
+#ifdef  STM32F2
+#define EE_ERASE                            EE_ERASE_SECTOR_NUMBER
+#define FLASH_SIZE                          ((((uint32_t)(*((uint16_t *)FLASHSIZE_BASE)) & (0xFFFFU))) * 1024)
+#endif
+
+#ifdef  STM32F3
+#define EE_ERASE                            EE_ERASE_PAGE_ADDRESS
+#define FLASH_SIZE                          ((((uint32_t)(*((uint16_t *)FLASHSIZE_BASE)) & (0xFFFFU))) * 1024)
+#endif
+
+#ifdef  STM32F4
+#define EE_ERASE                            EE_ERASE_SECTOR_NUMBER
+#define EE_SIZE                             0x20000
+#define FLASH_SIZE                          ((((uint32_t)(*((uint16_t *)FLASHSIZE_BASE)) & (0xFFFFU))) * 1024)
+#endif
+
+#ifdef  STM32F7
+#define EE_ERASE                            EE_ERASE_SECTOR_NUMBER
+#define EE_SIZE                             0x20000
+#endif
+
+#ifdef  STM32H5
+#define EE_ERASE                            EE_ERASE_PAGE_ADDRESS
+#endif
+
+#ifdef  STM32H7
+#define EE_ERASE                            EE_ERASE_SECTOR_NUMBER
+#endif
+
+#ifdef  STM32G0
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32G4
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32U0
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32U5
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32L0
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32L1
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32L4
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32L5
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32WB
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32W0
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32WBA
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#undef  FLASH_BANK_1
+#endif
+
+#ifdef  STM32WL
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifdef  STM32C0
+#define EE_ERASE                            EE_ERASE_PAGE_NUMBER
+#endif
+
+#ifndef EE_SIZE
+#if (EE_ERASE == EE_ERASE_PAGE_NUMBER) || (EE_ERASE == EE_ERASE_PAGE_ADDRESS)
+#define EE_SIZE                             FLASH_PAGE_SIZE
+#elif (EE_ERASE == EE_ERASE_SECTOR_NUMBER)
+#define EE_SIZE                             FLASH_SECTOR_SIZE
+#endif
+#endif
+
+#if    defined FLASH_BANK_2
+#define  EE_BANK_SELECT                     FLASH_BANK_2
+#elif  defined FLASH_BANK_1
+#define EE_BANK_SELECT                      FLASH_BANK_1
+#endif
+
+#ifndef EE_PAGE_SECTOR
+#if (EE_BANK_SELECT ==  FLASH_BANK_2)
+#define EE_PAGE_SECTOR                      ((FLASH_SIZE / EE_SIZE / 2) - 1)
 #else
-  return true;
+#define EE_PAGE_SECTOR                      ((FLASH_SIZE / EE_SIZE) - 1)
 #endif
-}
-/**
- * @brief Formats the EEPROM.
- *
- * This function erases the EEPROM memory, effectively formatting it.
- * Depending on the configuration, it can erase a page or sector of the EEPROM.
- * Optionally, it can also reset the RAM buffer used for caching EEPROM data.
- *
- * @param keepRamData If true, the RAM buffer will not be cleared after formatting.
- *                    If false, the RAM buffer will be filled with 0xFF after formatting.
- *
- * @return Returns true on successful formatting, false on failure.
- *         If formatting is successful, the function checks for an error code, which should be 0xFFFFFFFF.
- *         If the error code is not 0xFFFFFFFF, it means an error occurred during formatting.
- */
+#endif
 
-bool ee_format(bool keepRamData)
-{
-  uint32_t error;
-  HAL_FLASH_Unlock();
-  FLASH_EraseInitTypeDef flashErase;
-#if _EE_PAGE_OR_SECTOR == PAGE
-  flashErase.NbPages = 1;
-  flashErase.PageAddress = _EE_ADDR_INUSE;
-  flashErase.TypeErase = FLASH_TYPEERASE_PAGES;
-#elif _EE_PAGE_OR_SECTOR == SECTOR
-  flashErase.NbSectors = 1;
-  flashErase.Sector = _EE_USE_FLASH_PAGE_OR_SECTOR;
-  flashErase.TypeErase = FLASH_TYPEERASE_SECTORS;
-#elif _EE_PAGE_OR_SECTOR == PAGE_NUM
-  flashErase.NbPages = 1;
-  flashErase.PageAddress = _EE_ADDR_INUSE;
-  flashErase.TypeErase = FLASH_TYPEERASE_PAGES;
+#ifndef EE_ADDRESS
+#if (EE_BANK_SELECT !=  FLASH_BANK_2)
+#define EE_ADDRESS                          (FLASH_BASE + EE_SIZE * EE_PAGE_SECTOR)
+#else
+#define EE_ADDRESS                          (FLASH_BASE + EE_SIZE * (EE_PAGE_SECTOR * 2 + 1))
 #endif
-#ifdef _EE_FLASH_BANK
-  flashErase.Banks = _EE_FLASH_BANK;
 #endif
-#ifdef _EE_VOLTAGE_RANGE
-  flashErase.VoltageRange = _EE_VOLTAGE_RANGE;
+
+#ifndef EE_ERASE
+#error "Not Supported MCU!"
 #endif
-  if (HAL_FLASHEx_Erase(&flashErase, &error) == HAL_OK)
-  {
-    HAL_FLASH_Lock();
-    if (error != 0xFFFFFFFF)
-      return false;
-    else
-    {
-#if (_EE_USE_RAM_BYTE > 0)
-      if (keepRamData == false)
-        memset(ee_ram, 0xFF, _EE_USE_RAM_BYTE);
-#endif
-      return true;
-    }
-  }
-  HAL_FLASH_Lock();
-  return false;
-}
+
+/************************************************************************************************************
+**************    Private Variables
+************************************************************************************************************/
+
+EE_HandleTypeDef eeHandle;
+
+/************************************************************************************************************
+**************    Private Functions
+************************************************************************************************************/
+
+
+/************************************************************************************************************
+**************    Public Functions
+************************************************************************************************************/
+
 /**
- * @brief Reads data from EEPROM.
- *
- * This function reads data from the EEPROM starting from the given virtual address.
- * If a valid data pointer is provided, it stores the data in the given buffer.
- * Optionally, it also updates a separate RAM buffer if configured to do so.
- *
- * @param startVirtualAddress The starting virtual address to read data from.
- * @param len The length of the data to read in bytes.
- * @param data Pointer to the buffer where the read data will be stored.
- *             If this parameter is NULL, only the RAM buffer will be updated.
- *
- * @return Returns true on success, false on failure.
- *         The function will fail if the read operation goes beyond the EEPROM size
- *         or if the data pointer is NULL.
- */
-bool ee_read(uint32_t startVirtualAddress, uint32_t len, uint8_t *data)
+  * @brief Initializes the EEPROM emulation module.
+  * @note This function initializes the EEPROM emulation module to enable read and write operations.
+  * @param StoragePointer: Pointer to the start address of the EEPROM emulation area.
+  * @param Size: Size of the EEPROM emulation area in bytes.
+  * @return Boolean value indicating the success of the initialization:
+  *       - true: Initialization successful.
+  *       - false: Initialization failed.
+  */
+bool EE_Init(void *StoragePointer, uint32_t Size)
 {
-  if ((startVirtualAddress + len) > _EE_SIZE)
-    return false;
-  for (uint32_t i = startVirtualAddress; i < len + startVirtualAddress; i++)
+  bool answer = false;
+  do
   {
-    if (data != NULL)
+    /* checking size of eeprom area*/
+    if (Size > EE_SIZE)
     {
-      *data = (*(__IO uint8_t *)(i + _EE_ADDR_INUSE));
+      eeHandle.Size = 0;
+      eeHandle.DataPointer = NULL;
+      break;
+    }
+    eeHandle.Size = Size;
+    eeHandle.DataPointer = (uint8_t*)StoragePointer;
+    answer = true;
+
+  } while (0);
+
+  return answer;
+}
+
+/***********************************************************************************************************/
+
+/**
+  * @brief Retrieves the capacity of the EEPROM emulation area.
+  * @note This function returns the total capacity of the EEPROM emulation area in bytes.
+  * @return Capacity of the EEPROM emulation area in bytes.
+  */
+uint32_t EE_Capacity(void)
+{
+  return EE_SIZE;
+}
+
+/***********************************************************************************************************/
+
+/**
+  * @brief Formats the EEPROM emulation area.
+  * @note This function formats the EEPROM emulation area,
+  * @return bool Boolean value indicating the success of the operation:
+  *     - true: Formatting successful.
+  *     - false: Formatting failed.
+  */
+bool EE_Format(void)
+{
+  bool answer = false;
+  uint32_t error;
+  FLASH_EraseInitTypeDef flashErase;
+  do
+  {
+    HAL_FLASH_Unlock();
+#ifdef HAL_ICACHE_MODULE_ENABLED
+    /* disabling ICACHE if enabled*/
+    HAL_ICACHE_Disable();
+#endif
+#if EE_ERASE == EE_ERASE_PAGE_ADDRESS
+    flashErase.TypeErase = FLASH_TYPEERASE_PAGES;
+    flashErase.PageAddress = EE_ADDRESS;
+    flashErase.NbPages = 1;
+#elif EE_ERASE == EE_ERASE_PAGE_NUMBER
+    flashErase.TypeErase = FLASH_TYPEERASE_PAGES;
+    flashErase.Page = EE_PAGE_SECTOR;
+    flashErase.NbPages = 1;
+#else
+    flashErase.TypeErase = FLASH_TYPEERASE_SECTORS;
+    flashErase.Sector = EE_PAGE_SECTOR;
+    flashErase.NbSectors = 1;
+#endif
+#ifdef EE_BANK_SELECT
+    flashErase.Banks = EE_BANK_SELECT;
+#endif
+#ifdef FLASH_VOLTAGE_RANGE_3
+    flashErase.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+#endif
+    /* erasing page/sector */
+    if (HAL_FLASHEx_Erase(&flashErase, &error) != HAL_OK)
+    {
+      break;
+    }
+    /* checking result */
+    if (error != 0xFFFFFFFF)
+    {
+      break;
+    }
+    answer = true;
+
+  } while (0);
+
+  HAL_FLASH_Lock();
+#ifdef HAL_ICACHE_MODULE_ENABLED
+  HAL_ICACHE_Enable();
+#endif
+  return answer;
+}
+
+/***********************************************************************************************************/
+
+/**
+  * @brief Reads data from the EEPROM emulation area.
+  * @note This function reads data from the EEPROM emulation area
+  *  and loads it into the specified storage pointer.
+  */
+void EE_Read(void)
+{
+  uint8_t *data = eeHandle.DataPointer;
+  if (data != NULL)
+  {
+    /* reading flash */
+    for (uint32_t i = 0; i < eeHandle.Size; i++)
+    {
+      *data = (*(__IO uint8_t*) (EE_ADDRESS + i));
       data++;
     }
-#if (_EE_USE_RAM_BYTE > 0)
-    if (i < _EE_USE_RAM_BYTE)
-      ee_ram[i] = (*(__IO uint8_t *)(i + _EE_ADDR_INUSE));
-#endif
   }
-  return true;
 }
-/**
- * @brief Writes data to EEPROM.
- *
- * This function writes data to the EEPROM starting from the given virtual address.
- * It writes data in chunks of 8 bytes, assuming the EEPROM can be written in double words (64 bits).
- *
- * @param startVirtualAddress The starting virtual address to write data to.
- * @param len The length of the data to write in bytes.
- * @param data Pointer to the data to be written.
- *
- * @return Returns 0 on success, or a non-zero error code on failure.
- *         Error codes: 1 - Out of EEPROM address range
- *                      2 - Null pointer provided for data
- *                      3 - Error during EEPROM programming
- */
-int ee_write(uint32_t startVirtualAddress, uint32_t len, uint8_t *data)
-{
-  if ((startVirtualAddress + len) > _EE_SIZE)
-    return 1;
-  if (data == NULL)
-    return 2;
-  HAL_FLASH_Unlock();
 
-  for (uint32_t i = 0; i < len; i += 8)
+/***********************************************************************************************************/
+
+/**
+  * @brief Writes data to the EEPROM emulation area.
+  * @note This function writes data to the EEPROM emulation area.
+  * @retval true if the write operation is successful, false otherwise.
+  */
+bool EE_Write(void)
+{
+  bool answer = true;
+  uint8_t *data = eeHandle.DataPointer;
+  do
   {
-    uint64_t data64 = data[i];
-    data64 += data[i + 1] * 0x100;
-    data64 += data[i + 2] * 0x10000;
-    data64 += data[i + 3] * 0x1000000;
-    data64 += data[i + 4] * 0x100000000;
-    data64 += data[i + 5] * 0x10000000000;
-    data64 += data[i + 6] * 0x1000000000000;
-    data64 += data[i + 7] * 0x100000000000000;
-    if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, ((i + startVirtualAddress)) + _EE_ADDR_INUSE, data64) != HAL_OK)
+    /* checking eeprom is initialize correctly */
+    if (data == NULL)
     {
-      HAL_FLASH_Lock();
-      return 3;
+      answer = false;
+      break;
     }
-  }
+    /* formating flash area before writing */
+    if (EE_Format() == false)
+    {
+      answer = false;
+      break;
+    }
+    HAL_FLASH_Unlock();
+#ifdef HAL_ICACHE_MODULE_ENABLED
+    /* disabling ICACHE if enabled*/
+    HAL_ICACHE_Disable();
+#endif
+#if (defined FLASH_TYPEPROGRAM_HALFWORD)
+    /* writing buffer to flash */
+    for (uint32_t i = 0; i < eeHandle.Size ; i += 2)
+    {
+      uint64_t halfWord;
+      memcpy((uint8_t*)&halfWord, data, 2);
+      if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, EE_ADDRESS + i, halfWord) != HAL_OK)
+      {
+        answer = false;
+        break;
+      }
+      data += 2;
+    }
+#elif (defined FLASH_TYPEPROGRAM_DOUBLEWORD)
+    /* writing buffer to flash */
+    for (uint32_t i = 0; i < eeHandle.Size; i += 8)
+    {
+      uint64_t doubleWord;
+      memcpy((uint8_t*)&doubleWord, data, 8);
+      if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, EE_ADDRESS + i, doubleWord) != HAL_OK)
+      {
+        answer = false;
+        break;
+      }
+      data += 8;
+    }
+#elif (defined FLASH_TYPEPROGRAM_QUADWORD)
+    /* writing buffer to flash */
+    for (uint32_t i = 0; i < eeHandle.Size; i += 16)
+    {
+      if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_QUADWORD, EE_ADDRESS + i, (uint32_t)data) != HAL_OK)
+      {
+        answer = false;
+        break;
+      }
+      data += 16;
+    }
+#elif (defined FLASH_TYPEPROGRAM_FLASHWORD)
+    /* writing buffer to flash */
+    for (uint32_t i = 0; i < eeHandle.Size; i += FLASH_NB_32BITWORD_IN_FLASHWORD * 4)
+    {
+      if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, EE_ADDRESS + i, (uint32_t)data) != HAL_OK)
+      {
+        answer = false;
+        break;
+      }
+      data += FLASH_NB_32BITWORD_IN_FLASHWORD * 4;
+    }
+#endif
+    /* verifying Flash content */
+    data = eeHandle.DataPointer;
+    for (uint32_t i = 0; i < eeHandle.Size; i++)
+    {
+      if (*data != (*(__IO uint8_t*) (EE_ADDRESS + i)))
+      {
+        answer = false;
+        break;
+      }
+      data++;
+    }
+
+  } while (0);
+
   HAL_FLASH_Lock();
-  return 0;
-}
-// ##########################################################################################################
-bool ee_writeToRam(uint32_t startVirtualAddress, uint32_t len, uint8_t *data)
-{
-#if (_EE_USE_RAM_BYTE > 0)
-  if ((startVirtualAddress + len) > _EE_USE_RAM_BYTE)
-    return false;
-  if (data == NULL)
-    return false;
-  memcpy(&ee_ram[startVirtualAddress], data, len);
-  return true;
-#else
-  return false;
+#ifdef HAL_ICACHE_MODULE_ENABLED
+  HAL_ICACHE_Enable();
 #endif
+  return answer;
 }
-// ##########################################################################################################
-bool ee_commit(void)
-{
-#if (_EE_USE_RAM_BYTE > 0)
-  if (ee_format(true) == false)
-    return false;
-  return ee_write(0, _EE_USE_RAM_BYTE, ee_ram);
-#else
-  return false;
-#endif
-}
-// ##########################################################################################################
-uint32_t ee_maxVirtualAddress(void)
-{
-  return (_EE_SIZE);
-}
-// ##########################################################################################################
+
+/***********************************************************************************************************/

@@ -37,4 +37,7 @@ modbus\ display/rtudisplay.o: ..\Library\RTU-Display\rtudisplay.c \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\string.h \
   ..\Library\SSD1306-Lib\ssd1306.h ..\Library\SSD1306-Lib\fonts.h \
-  ..\Library\SSD1306-Lib\fonts.h ..\Core\Inc\i2c.h ..\Core\Inc\main.h
+  ..\Library\SSD1306-Lib\fonts.h ..\Core\Inc\i2c.h ..\Core\Inc\main.h \
+  ..\Library\EEprom\ee.h ..\Library\Modbus-Handler\RtuHandler.h \
+  ..\Core\Inc\usart.h ..\Core\Inc\tim.h ..\Library\Modbus\include\mb.h \
+  ..\Library\Modbus\include\mbport.h ..\Library\Modbus\include\mbproto.h

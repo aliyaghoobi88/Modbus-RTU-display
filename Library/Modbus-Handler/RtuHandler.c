@@ -4,53 +4,21 @@
 #include "port.h"
 #include "rtudisplay.h"
 
-uint8_t SaveEE_flag = 0;
-static USHORT usRegInputStart = REG_INPUT_START;
-static USHORT usRegInputBuf[REG_INPUT_NREGS] = {'M', 'o', 'd', 'b', 'u', 's', 0, 0};
+uint8_t HR_Write_Flag = 0;
 
 
-uint8_t ModbusRtuInit(uint8_t uid,uint32_t Baudrate)
+
+
+uint8_t ModbusRtuInit(uint8_t uid,uint32_t Baudrate,TIM_HandleTypeDef* timer,UART_HandleTypeDef* uart)
 {
-    MT_PORT_SetTimerModule(&htim3);
-    MT_PORT_SetUartModule(&huart2);
+    MT_PORT_SetTimerModule(timer);
+    MT_PORT_SetUartModule(uart);
     eMBErrorCode eStatus;
     eStatus = eMBInit(MB_RTU, uid, 0, Baudrate, MB_PAR_NONE);
     eStatus = eMBEnable();
     return eStatus;
 }
 
-
-
-
-
-
-/*Read Input register handler*/
-eMBErrorCode eMBRegInputCB(UCHAR *pucRegBuffer, USHORT usAddress, USHORT usNRegs)
-{
-  eMBErrorCode eStatus = MB_ENOERR;
-  int iRegIndex;
-
-  if ((usAddress >= REG_INPUT_START) &&
-      (usAddress + usNRegs <= REG_INPUT_START + REG_INPUT_NREGS))
-  {
-    iRegIndex = (int)(usAddress - usRegInputStart);
-
-    while (usNRegs > 0)
-    {
-      *pucRegBuffer++ = (unsigned char)(usRegInputBuf[iRegIndex] >> 8);
-      *pucRegBuffer++ = (unsigned char)(usRegInputBuf[iRegIndex] & 0xFF);
-
-      iRegIndex++;
-      usNRegs--;
-    }
-  }
-  else
-  {
-    eStatus = MB_ENOREG;
-  }
-
-  return eStatus;
-}
 
 /*Read and Write Holding  register handler*/
 eMBErrorCode eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress, USHORT usNRegs, eMBRegisterMode eMode)
@@ -67,7 +35,7 @@ eMBErrorCode eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress, USHORT usNRe
     {
     case MB_REG_WRITE:
       // Write operation
-      SaveEE_flag = 1;
+      HR_Write_Flag = 1;
       while (usNRegs > 0)
       {
         // Extract two bytes from the buffer and update the holding register.
@@ -105,14 +73,4 @@ eMBErrorCode eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress, USHORT usNRe
   return eStatus;
 }
 
-// Unesed Function Code Handler
-
-eMBErrorCode eMBRegCoilsCB(UCHAR *pucRegBuffer, USHORT usAddress, USHORT usNCoils,
-                           eMBRegisterMode eMode)
-{
-  return MB_ENOREG;
-}
-eMBErrorCode eMBRegDiscreteCB(UCHAR *pucRegBuffer, USHORT usAddress, USHORT usNDiscrete)
-{
-  return MB_ENOREG;
-}
+ 

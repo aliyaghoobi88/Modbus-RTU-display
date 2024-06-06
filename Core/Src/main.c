@@ -15,141 +15,55 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "i2c.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+
 #include "ssd1306.h"
 #include "fonts.h"
 #include "RtuHandler.h"
 #include "rtudisplay.h"
-/* USER CODE END Includes */
 
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
 
-/* USER CODE END PTD */
 
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
 uint8_t init_status;
-/* USER CODE END PV */
 
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-/* USER CODE BEGIN PFP */
 
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
-	
-			HAL_GPIO_TogglePin(Buzzer_GPIO_Port,Buzzer_Pin);
-HAL_Delay(1000);
-
-		HAL_GPIO_TogglePin(Buzzer_GPIO_Port,Buzzer_Pin);
-HAL_Delay(1000);
-
-
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
-  /* USER CODE BEGIN 2 */
-
-  /* USER CODE BEGIN 2 */
-
-  ModbusRtuInit(0x02,9600);
-
-	
-	HRBuff[1]=125;
-
-  //Init lcd using one of the stm32HAL i2c typedefs
-  if (ssd1306_Init(&hi2c1) != 0) {
-    Error_Handler();
-  }
-
-  ssd1306_Fill(Black);
-  ssd1306_UpdateScreen(&hi2c1);
-  ssd1306_SetCursor(0, 0);
-
-  
-//MenuDensity_view(1.26);
-//effect_rollup();
- ssd1306_UpdateScreen(&hi2c1);
 
 
 
- 
-	
-
- 
+  Rtudisplay_Init();
 
 
 
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+  Rtudisplay_UpdateLCD();
    while (1)
   {
-    /* USER CODE END WHILE */
 		eMBPoll();
-	
-	update_display();
-	HAL_Delay(200);
-		
-    /* USER CODE BEGIN 3 */
+  if (HR_Write_Flag == 1)
+  {
+		Rtudisplay_UpdateLCD();
+    Rtudisplay_SaveParam();
+    HR_Write_Flag=0;
   }
-  /* USER CODE END 3 */
+				Rtudisplay_UpdateBuzzer();
+        Rtudisplay_UpdateKey();
+  }
 }
+
 
 /**
   * @brief System Clock Configuration

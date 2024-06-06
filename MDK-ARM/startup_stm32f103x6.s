@@ -1,4 +1,4 @@
-4;******************** (C) COPYRIGHT 2017 STMicroelectronics ********************
+;******************** (C) COPYRIGHT 2017 STMicroelectronics ********************
 ;* File Name          : startup_stm32f103x6.s
 ;* Author             : MCD Application Team
 ;* Description        : STM32F103x6 Devices vector table for MDK-ARM toolchain. 
