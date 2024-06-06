@@ -1,0 +1,50 @@
+Line 1 -Char 1,0
+Line 1 -Char 2,0
+Line 1 -Char 3,0
+Line 1 -Char 4,0
+Line 1 -Char 5,0
+Line 1 -Char 6,0
+Line 1 -Char 7,0
+Line 1 -Char 8,0
+Line 1 -Char 9,0
+Line 1 -Char 10,0
+Line 1 -Char 11,0
+Line 2 -Char 1,0
+Line 2 -Char 2,0
+Line 2 -Char 3,0
+Line 2 -Char 4,0
+Line 2 -Char 5,0
+Line 2 -Char 6,0
+Line 2 -Char 7,0
+Line 2 -Char 8,0
+Line 2 -Char 9,0
+Line 2 -Char 10,0
+Line 2 -Char 11,0
+Line 3 -Char 1,0
+Line 3 -Char 2,0
+Line 3 -Char 3,0
+Line 3 -Char 4,0
+Line 3 -Char 5,0
+Line 3 -Char 6,0
+Line 3 -Char 7,0
+Line 3 -Char 8,0
+Line 3 -Char 9,0
+Line 3 -Char 10,0
+Line 3 -Char 11,0
+Reserve,0
+Reserve,0
+Reserve,0
+Mobus ID,3
+Baud Rate,2
+Save_CMD,0
+UP -KEY,0
+Down-KEY,0
+Enter-KEY,1
+Buzzer,0
+,0
+,0
+,0
+,0
+,0
+,0
+,0
