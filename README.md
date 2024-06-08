@@ -18,6 +18,7 @@ This project implements a Modbus RTU slave for an STM32 microcontroller. It comm
 - [Key & Buzzer](#key--buzzer)
 - [Display Initialization](#display-initialization)
 - [Main Loop](#main-loop)
+- [Modbus Register Table ](#Mbus-Table)
 - [Python GUI](#guipython)
 
 ## Config Timer
@@ -89,7 +90,22 @@ The main program loop (`while(1)`) performs the following:
 4. **Update Key States:** Reflect in holding registers.
 This loop keeps the system responsive to Modbus, user input, and events requiring display or buzzer updates.
 
-## guipython
+## Mbus-Table
+ 
+| Address     	| Description   	|
+|-------------	|:-----------------:|
+| 40001-----40011 	| Line 1        	|
+| 40012-----40022 	| Line 2        	|
+| 40023-----40033 	| Line 3        	|
+| 40034-----40036 	| Reserved      	|
+| 40037       	| Modbus ID     	|
+| 40038       	| Baud Rate     	|
+| 40039       	| Save Settings 	|
+| 40040       	| Up Key        	|
+| 40041       	| Down Key      	|
+| 40042       	| Enter Key     	|
+| 40043       	| Buzzer        	|
+
 This project offers a GUI for interacting with Modbus Dispaly RTU via Tkinter in Python, allowing users to configure communication, control a buzzer, and monitor keys and LEDs. Access the software [here](https://github.com/aliyaghoobi88/Modbus-Display-Config-Python).
 
 
