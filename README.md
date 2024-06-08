@@ -94,9 +94,9 @@ This loop keeps the system responsive to Modbus, user input, and events requirin
  
 | Address     	| Description   	|
 |-------------	|:-----------------:|
-| 40001-----40011 	| Line 1        	|
-| 40012-----40022 	| Line 2        	|
-| 40023-----40033 	| Line 3        	|
+| 40001-----40011 	| LCD Line 1        	|
+| 40012-----40022 	| LCD Line 2        	|
+| 40023-----40033 	| LCD Line 3        	|
 | 40034-----40036 	| Reserved      	|
 | 40037       	| Modbus ID     	|
 | 40038       	| Baud Rate     	|
