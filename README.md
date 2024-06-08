@@ -1,6 +1,6 @@
-# STM32 Modbus Disp 
+# STM32 Modbus Display
 
-## Description
+## Short Description
 
 This project implements a Modbus RTU slave for an STM32 microcontroller. It communicates with a Modbus master device over a UART interface and displays data on an SSD1306 OLED display. Key features include:
 
@@ -49,7 +49,7 @@ typedef struct {
   USHORT ModbusID;
 } Storage_t;
 ```
-[text](https://github.com/nimaltd/ee)
+Refer to [EEPROM EMULATION Library for STM32](https://github.com/nimaltd/ee) for more details.
 
 ## Key & Buzzer
 
