@@ -84,9 +84,12 @@ The `Rtudisplay_Init` function initializes various components:
 The main program loop (`while(1)`) performs the following:
 
 1. **Handle Modbus Communication:** Call `eMBPoll()`.
-2. **Update Display and Save Parameters:** If `HR_Write_Flag` is set.
+2. **Update Display and Save Parameters:** If Write on Holding Register  function  received and `HR_Write_Flag` is  set.
 3. **Update Buzzer State:** Based on holding register.
 4. **Update Key States:** Reflect in holding registers.
 This loop keeps the system responsive to Modbus, user input, and events requiring display or buzzer updates.
 
 ## guipython
+This project offers a GUI for interacting with Modbus Dispaly RTU via Tkinter in Python, allowing users to configure communication, control a buzzer, and monitor keys and LEDs. Access the software [here](https://github.com/aliyaghoobi88/Modbus-Display-Config-Python).
+
+
