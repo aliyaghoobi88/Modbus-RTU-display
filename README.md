@@ -9,6 +9,7 @@ This project implements a Modbus RTU slave for an STM32 microcontroller. It comm
 - **User Interface:** Provides a user interface with three keys (Up, Down, Enter) and a buzzer, controllable via holding registers.
 - **EEPROM Storage:** Stores and retrieves configuration data (baud rate, Modbus ID) in EEPROM, modifiable through Modbus holding registers.
 - **Holding Register Management:** Defines holding registers for storing display text, key states, buzzer control, and configuration settings.
+![Untitled design](https://github.com/aliyaghoobi88/Modbus-RTU-display/assets/4157568/c5a98953-03ba-4128-b75e-823cef0f0ceb)
 
 ## Table of Contents
 
