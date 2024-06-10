@@ -31,6 +31,7 @@ This project implements a Modbus RTU slave for an STM32 microcontroller. It comm
 4. **Set the Timer Counter Mode:** Set to `TIM_COUNTERMODE_UP`.
 5. **Initialize the Timer:** Use `HAL_TIM_Base_Init` to initialize the timer.
 6. **Pass the Timer Handle to Modbus:** Pass the configured timer handle (`htim3`) to `ModbusRtuInit`.
+- Refer to [freemodbus Porting Doc](https://github.com/cwalter-at/freemodbus/blob/master/doc/porting.dox) for more details about timing and [microtechnics](https://microtechnics.ru/) for porting the freemodbus to STM32.
 
 ## Config LCD
 
