@@ -112,6 +112,7 @@ This loop keeps the system responsive to Modbus, user input, and events requirin
 ## guipython
 This project offers a GUI for interacting with Modbus Dispaly RTU via Tkinter in Python, allowing users to configure communication, control a buzzer, and monitor keys and LEDs. Access the software [here](https://github.com/aliyaghoobi88/Modbus-Display-Config-Python).
 
+  ![Gui](https://github.com/aliyaghoobi88/Modbus-Display-Config-Python/assets/4157568/5035c415-7207-4e48-8b2f-188114011fc2)
 
 ## roadmap
 
