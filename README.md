@@ -9,6 +9,7 @@ This project implements a Modbus RTU slave for an STM32 microcontroller. It comm
 - **User Interface:** Provides a user interface with three keys (Up, Down, Enter) and a buzzer, controllable via holding registers.
 - **EEPROM Storage:** Stores and retrieves configuration data (baud rate, Modbus ID) in EEPROM, modifiable through Modbus holding registers.
 - **Holding Register Management:** Defines holding registers for storing display text, key states, buzzer control, and configuration settings.
+![Untitled design](https://github.com/aliyaghoobi88/Modbus-RTU-display/assets/4157568/c5a98953-03ba-4128-b75e-823cef0f0ceb)
 
 ## Table of Contents
 
@@ -20,6 +21,7 @@ This project implements a Modbus RTU slave for an STM32 microcontroller. It comm
 - [Main Loop](#main-loop)
 - [Modbus Register Table ](#Mbus-Table)
 - [Python GUI](#guipython)
+- [Roadmap](#roadmap)
 
 ## Config Timer
 
@@ -106,7 +108,13 @@ This loop keeps the system responsive to Modbus, user input, and events requirin
 | 40042       	| Enter Key     	|
 | 40043       	| Buzzer        	|
 
-#guipython
+## guipython
 This project offers a GUI for interacting with Modbus Dispaly RTU via Tkinter in Python, allowing users to configure communication, control a buzzer, and monitor keys and LEDs. Access the software [here](https://github.com/aliyaghoobi88/Modbus-Display-Config-Python).
 
+![Gui](https://github.com/aliyaghoobi88/Modbus-RTU-display/assets/4157568/a23f8523-715b-4e05-b16a-05de5535a17b)
 
+## roadmap
+
+- [ ] The RS485 Directin Control pin declared at init function (Currently in Library\Modbus\rtu\mbrtu.c line 302,315  ) !!
+- [ ] Support multi-size font for each line
+- [ ] Add Changelog
